@@ -1,0 +1,125 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+install.packages("tidyverse")
+install.packages("ggplot2")
+install.packages("TSstudio")
+install.packages("dplyr")
+install.packages("corrplot")
+install.packages("janitor")
+install.packages("tidyr")
+library(corrplot)
+library(ggplot2)
+library(tidyverse)
+library(TSstudio)
+library(dplyr)
+library(tidyr)
+library(janitor)
+
+
+mls<-read.csv ("/Users/tomkalantzis/Desktop/CIND820 FINAL PROJECT/Final Project/MLS.csv",header=TRUE)
+
+
+head(mls)
+str(mls)
+sum(is.na(mls))
+summary(mls)
+
+sd(mls$THouseYoYChange ,na.rm=TRUE)
+sd(mls$CompYoYChange ,na.rm=TRUE)
+sd(mls$SFDetachBenchmark , na.rm=TRUE)
+sd(mls$SFdetachYoYChange , na.rm=TRUE)
+sd(mls$SFAttachIndex , na.rm=TRUE)
+sd(mls$SFAttachBenchmark, na.rm=TRUE)
+sd(mls$THouseIndex, na.rm=TRUE)
+sd(mls$THouseBenchmark, na.rm=TRUE)
+sd(mls$ApartIndex, na.rm=TRUE)
+sd(mls$ApartBenchmark, na.rm=TRUE)
+sd(mls$ApartYoYChange, na.rm=TRUE)
+sd(mls$ThouseYoYChange, na.rm=TRUE)
+sd(mls$SFAttachYoYChange, na.rm=TRUE)
+
+boxplot(mls$SFDetachIndex)
+boxplot(mls$CompyYoYChange)
+boxplot(mls$SFDetachBenchmark)
+boxplot(mls$CompIndex)
+boxplot(mls$CompBenchmark)
+boxplot(mls$CompYoYChange)
+boxplot(mls$SFDetachYoYChange)
+boxplot(mls$SFAttachIndex)
+boxplot(mls$SFAttachBenchmark)
+boxplot(mls$SFAttachYoYChange)
+boxplot(mls$THouseIndex)
+boxplot(mls$THouseBenchmark)
+boxplot(mls$THouseYoYChange)
+boxplot(mls$ApartIndex)
+boxplot(mls$ApartBenchmark)
+boxplot(mls$ApartYoYChange)
+
+
+hist(mls$SFDetachBenchmark)
+hist(mls$CompBenchmark)
+hist(mls$SFAttachBenchmark)
+hist(mls$THouseBenchmark)
+hist(mls$ApartBenchmark)
+
+cor(mls$SFDetachBenchmark, mls$SFAttachBenchmark, use="complete.obs")
+cor(mls$SFDetachBenchmark, mls$THouseBenchmark, use="complete.obs")
+cor(mls$SFDetachBenchmark, mls$ApartBenchmark,  use="complete.obs")
+
+cor(mls$SFAttachBenchmark,mls$SFDetachBenchmark , use="complete.obs")
+cor(mls$SFAttachBenchmark,mls$THouseBenchmark , use="complete.obs")
+cor(mls$SFAttachBenchmark, mls$ApartBenchmark, use="complete.obs")
+
+cor(mls$THouseBenchmark,mls$SFDetachBenchmark , use="complete.obs")
+cor(mls$THouseBenchmark,mls$SFAttachBenchmark , use="complete.obs")
+cor(mls$THouseBenchmark,mls$ApartBenchmark , use="complete.obs")
+
+cor(mls$ApartBenchmark,mls$SFDetachBenchmark , use="complete.obs")
+cor(mls$ApartBenchmark, mls$SFAttachBenchmark, use="complete.obs")
+cor(mls$ApartBenchmark,mls$THouseBenchmark , use="complete.obs")
+
+#EDA
+
+newmls<-c("SFAttachBenchmark","THouseBenchmark","ApartBenchmark","SFDetachBenchmark","Date")
+mls1<-mls[newmls]
+mls1
+
+mls2<-na.omit(mls1)
+mls2
+
+normalize <- function(x){
+  return ((x - min(x)) / (max(x) - min(x)))
+
+mls2$SFAttachBenchmark<-normalize(mls2$SFAttachBenchmark)
+mls2$THouseBenchmark <- normalize(mls2$THouseBenchmark)
+mls2$ApartBenchmark <- normalize(mls2$ApartBenchmark) 
+mls2$SFDetachBenchmark <- normalize (mls2$SFDetachBenchmark)
+mls2$Date<- normalize(mls2$Date)
+
+
+Date1<- as.Date(mls2$Date)
+Date1
+
+
+mls1<- cor(mls[,mls2])
+corrplot(mls1, method="shade",type="upper")
+
+ggplot(mls2, aes(x=Date1, y=THouseBenchmark  )) + 
+        geom_point() +
+        geom_smooth()
+        
+ggplot(mls2, aes(x=Date1, y=SFAttachBenchmark )) + 
+        geom_point() +
+        geom_smooth()
+        
+ggplot(mls2, aes(x=Date1, y=ApartBenchmark)) + 
+        geom_point() +
+        geom_smooth()
+        
+ggplot(mls2, aes(x=Date1, y=SFDetachBenchmark)) + 
+        geom_point() +
+        geom_smooth()
+    
