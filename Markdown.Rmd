@@ -1,13 +1,19 @@
 ---
 title: "CIND820 Markdown"
-Author: "Anastasios-Tom Kalantzis"
-output: html_document
+Author: Anastasios-Tom Kalantzis
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
 ---
 
 ## R Markdown
-Install and load the appropriate packages/libraries for the project.
+#Install and load the appropriate packages/libraries for the project.
 
 ```{r }
+
 #install.packages("tidyverse")
 #install.packages("ggplot2")
 #install.packages("TSstudio")
@@ -15,13 +21,13 @@ Install and load the appropriate packages/libraries for the project.
 #install.packages("corrplot")
 #install.packages("janitor")
 #install.packages("tidyr")
-#library(corrplot)
-#library(ggplot2)
-#library(tidyverse)
-#library(TSstudio)
-#library(dplyr)
-#library(tidyr)
-#library(janitor)
+library(corrplot)
+library(ggplot2)
+library(tidyverse)
+library(TSstudio)
+library(dplyr)
+library(tidyr)
+library(janitor)
 
 ```
 
@@ -58,21 +64,22 @@ sd(mls$SFAttachYoYChange, na.rm=TRUE)
 #Boxplots showing the outliers
 ```{r}
 boxplot(mls$SFDetachIndex, na.rm=TRUE)
-boxplot(mls$CompyYoYChange, na.rm=TRUE)
+#boxplot(mls$CompyYoYChange, na.rm=TRUE)
 boxplot(mls$SFDetachBenchmark, na.rm=TRUE)
 boxplot(mls$CompIndex, na.rm=TRUE)
 boxplot(mls$CompBenchmark, na.rm=TRUE)
-boxplot(mls$CompYoYChange, na.rm=TRUE)
-boxplot(mls$SFDetachYoYChange, na.rm=TRUE)
+#boxplot(mls$CompYoYChange, na.rm=TRUE)
+#boxplot(mls$SFDetachYoYChange, na.rm=TRUE)
 boxplot(mls$SFAttachIndex, na.rm=TRUE)
 boxplot(mls$SFAttachBenchmark, na.rm=TRUE)
-boxplot(mls$SFAttachYoYChange, na.rm=TRUE)
+#boxplot(mls$SFAttachYoYChange, na.rm=TRUE)
 boxplot(mls$THouseIndex, na.rm=TRUE)
 boxplot(mls$THouseBenchmark, na.rm=TRUE)
-boxplot(mls$THouseYoYChange, na.rm=TRUE)
+#boxplot(mls$THouseYoYChange, na.rm=TRUE)
 boxplot(mls$ApartIndex, na.rm=TRUE)
 boxplot(mls$ApartBenchmark, na.rm=TRUE)
-boxplot(mls$ApartYoYChange, na.rm=TRUE)
+#boxplot(mls$ApartYoYChange, na.rm=TRUE)
+
 ```
 #Histograms showing where the values are skewed 
 ```{r}
@@ -103,12 +110,13 @@ cor(mls$ApartBenchmark,mls$THouseBenchmark , use="complete.obs")
 ```
 #EDA
 ```{r}
+
 newmls<-c("SFAttachBenchmark","THouseBenchmark","ApartBenchmark","SFDetachBenchmark","Date")
 mls1<-mls[newmls]
-mls1
+#mls1
 
 mls2<-na.omit(mls1)
-mls2
+#mls2
 
 normalize <- function(x){
   return ((x - min(x)) / (max(x) - min(x)))}
@@ -117,15 +125,12 @@ mls2$SFAttachBenchmark<-normalize(mls2$SFAttachBenchmark)
 mls2$THouseBenchmark <- normalize(mls2$THouseBenchmark)
 mls2$ApartBenchmark <- normalize(mls2$ApartBenchmark) 
 mls2$SFDetachBenchmark <- normalize (mls2$SFDetachBenchmark)
-mls2$Date<- normalize(mls2$Date)
-
 
 Date1<- as.Date(mls2$Date)
-Date1
+#Date1
 
-
-mls1<- cor(mls[,mls2])
-corrplot(mls1, method="shade",type="upper")
+mls3<- cor(mls2[,c("SFAttachBenchmark","THouseBenchmark","ApartBenchmark","SFDetachBenchmark")])
+corrplot(mls3, method="shade",type="upper")
 
 ggplot(mls2, aes(x=Date1, y=THouseBenchmark  )) + 
         geom_point() +
