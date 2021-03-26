@@ -21,6 +21,9 @@ editor_options:
 #install.packages("corrplot")
 #install.packages("janitor")
 #install.packages("tidyr")
+#install.packages("keras")
+#install.packages("data.table")
+
 library(corrplot)
 library(ggplot2)
 library(tidyverse)
@@ -28,6 +31,8 @@ library(TSstudio)
 library(dplyr)
 library(tidyr)
 library(janitor)
+library(keras)
+library(data.table)
 
 ```
 
@@ -36,8 +41,7 @@ library(janitor)
 ```{r}
 mls<-read.csv ("/Users/tomkalantzis/Desktop/CIND820 FINAL PROJECT/Final Project/MLS.csv",header=TRUE)
 ```
-
-
+#Basic data 
 ```{r}
 head(mls)
 str(mls)
@@ -59,27 +63,19 @@ sd(mls$ApartBenchmark, na.rm=TRUE)
 sd(mls$ApartYoYChange, na.rm=TRUE)
 sd(mls$ThouseYoYChange, na.rm=TRUE)
 sd(mls$SFAttachYoYChange, na.rm=TRUE)
-
 ```
 #Boxplots showing the outliers
 ```{r}
 boxplot(mls$SFDetachIndex, na.rm=TRUE)
-#boxplot(mls$CompyYoYChange, na.rm=TRUE)
 boxplot(mls$SFDetachBenchmark, na.rm=TRUE)
 boxplot(mls$CompIndex, na.rm=TRUE)
 boxplot(mls$CompBenchmark, na.rm=TRUE)
-#boxplot(mls$CompYoYChange, na.rm=TRUE)
-#boxplot(mls$SFDetachYoYChange, na.rm=TRUE)
 boxplot(mls$SFAttachIndex, na.rm=TRUE)
 boxplot(mls$SFAttachBenchmark, na.rm=TRUE)
-#boxplot(mls$SFAttachYoYChange, na.rm=TRUE)
 boxplot(mls$THouseIndex, na.rm=TRUE)
 boxplot(mls$THouseBenchmark, na.rm=TRUE)
-#boxplot(mls$THouseYoYChange, na.rm=TRUE)
 boxplot(mls$ApartIndex, na.rm=TRUE)
 boxplot(mls$ApartBenchmark, na.rm=TRUE)
-#boxplot(mls$ApartYoYChange, na.rm=TRUE)
-
 ```
 #Histograms showing where the values are skewed 
 ```{r}
@@ -106,11 +102,9 @@ cor(mls$THouseBenchmark,mls$ApartBenchmark , use="complete.obs")
 cor(mls$ApartBenchmark,mls$SFDetachBenchmark , use="complete.obs")
 cor(mls$ApartBenchmark, mls$SFAttachBenchmark, use="complete.obs")
 cor(mls$ApartBenchmark,mls$THouseBenchmark , use="complete.obs")
-
 ```
 #EDA
 ```{r}
-
 newmls<-c("SFAttachBenchmark","THouseBenchmark","ApartBenchmark","SFDetachBenchmark","Date")
 mls1<-mls[newmls]
 #mls1
@@ -148,3 +142,176 @@ ggplot(mls2, aes(x=Date1, y=SFDetachBenchmark)) +
         geom_point() +
         geom_smooth()
 ```
+#Time series forecasting
+```{r}
+#loading required libraries
+library(readr)
+library(ggplot2)
+library(forecast)
+library(fpp2)
+library(TTR)
+library(dplyr)
+
+#Reading Data
+dat<-read.csv ("/Users/tomkalantzis/Desktop/CIND820 FINAL PROJECT/Final Project/
+MLS.csv",header=TRUE)
+glimpse(dat)
+newmls<-c("SFAttachBenchmark","THouseBenchmark","ApartBenchmark","SFDetachBenchmark","Date")
+dat1<-dat[newmls]
+dat2<-na.omit(dat1)
+glimpse(dat2)
+dat3<-as.character(unlist(dat2))
+
+#Data seperation
+dt = sort(sample(nrow(dat3), nrow(dat3)*.85))
+train<-dat3[dt,]
+test<-dat3[-dt,]
+nrow(train);nrow(test)
+###############################################################################
+#Forecasting for SFAttachBenchmark
+#Time Series
+dat_ts<-ts(train[,1],start=c(2014,01),end=c(2021,12), frequency=12)
+dat_ts1<-as.numeric(dat_ts)
+mape<-function(actual,pred){
+mape<-mean(abs((actual-pred)/actual))*100
+return(mape)
+}
+
+#Naive forecasting
+naive_mod<-naive(dat_ts1,h=12)
+summary(naive_mod)
+test$naive =637300
+mape(test$SFAttachBenchmark, test$naive)
+
+#Simple exponential smoothing
+se_model<-ses(dat_ts1,h=12)
+summary(se_model)
+df_fc = as.matrix(se_model)
+test$simplexp = df_fc$`Point Forecast`
+mape(test$SFAttachBenchmark, test$simplexp)
+
+#Holts trend model 
+holt_model<-holt(dat_ts1,h=12)
+summary(holt_model)
+df_holt = as.matrix(holt_model)
+test$holt = df_holt$`Point Forecast`
+mape(test$SFAttachBenchmark, test$holt) 
+
+# Arima
+arima_model<-auto.arima(dat_ts1)
+summary(arima_model)
+fore_arima = forecast::forecast(arima_model, h=12)
+df_arima = as.matrix(fore_arima)
+test$arima = df_arima$`Point Forecast`
+mape(test$SFAttachBenchmark, test$arima) 
+###############################################################################
+#Forecasting for THouseBenchmark
+#Time Series
+dat_ts<-ts(train[,2],start=c(2014,01),end=c(2021,12), frequency=12)
+dat_ts1<-as.numeric(dat_ts)
+mape<-function(actual,pred){
+mape<-mean(abs((actual-pred)/actual))*100
+return(mape)
+}
+
+#Naive forecasting
+naive_mod<-naive(dat_ts1,h=12)
+summary(naive_mod)
+test$naive =640100
+mape(test$THouseBenchmark, test$naive)
+
+#Simple exponential smoothing
+se_model<-ses(dat_ts1,h=12)
+summary(se_model)
+df_fc = as.matrix(se_model)
+test$simplexp = df_fc$`Point Forecast`
+mape(test$THouseBenchmark, test$simplexp)
+
+#Holts trend model 
+holt_model<-holt(dat_ts1,h=12)
+summary(holt_model)
+df_holt = as.matrix(holt_model)
+test$holt = df_holt$`Point Forecast`
+mape(test$THouseBenchmark, test$holt) 
+
+# Arima
+arima_model<-auto.arima(dat_ts1)
+summary(arima_model)
+fore_arima = forecast::forecast(arima_model, h=12)
+df_arima = as.matrix(fore_arima)
+test$arima = df_arima$`Point Forecast`
+mape(test$THouseBenchmark, test$arima) 
+###############################################################################
+#Forecasting for ApartBenchmark
+#Time Series
+dat_ts<-ts(train[,3],start=c(2014,01),end=c(2021,12), frequency=12)
+dat_ts1<-as.numeric(dat_ts)
+mape<-function(actual,pred){
+mape<-mean(abs((actual-pred)/actual))*100
+return(mape)
+}
+
+#Naive forecasting
+naive_mod<-naive(dat_ts1,h=12)
+summary(naive_mod)
+test$naive =513000
+mape(test$ApartBenchmark, test$naive)
+
+#Simple exponential smoothing
+se_model<-ses(dat_ts1,h=12)
+summary(se_model)
+df_fc = as.matrix(se_model)
+test$simplexp = df_fc$`Point Forecast`
+mape(test$ApartBenchmark, test$simplexp)
+
+#Holts trend model 
+holt_model<-holt(dat_ts1,h=12)
+summary(holt_model)
+df_holt = as.matrix(holt_model)
+test$holt = df_holt$`Point Forecast`
+mape(test$ApartBenchmark, test$holt) 
+
+# Arima
+arima_model<-auto.arima(dat_ts1)
+summary(arima_model)
+fore_arima = forecast::forecast(arima_model, h=12)
+df_arima = as.matrix(fore_arima)
+test$arima = df_arima$`Point Forecast`
+mape(test$ApartBenchmark, test$arima) 
+###############################################################################
+#Forecasting for SFDetachBenchmark
+#Time Series
+dat_ts<-ts(train[,4],start=c(2014,01),end=c(2021,12), frequency=12)
+dat_ts1<-as.numeric(dat_ts)
+mape<-function(actual,pred){
+mape<-mean(abs((actual-pred)/actual))*100
+return(mape)
+}
+
+#Naive forecasting
+naive_mod<-naive(dat_ts1,h=12)
+summary(naive_mod)
+test$naive =513000
+mape(test$SFDetachBenchmark, test$naive)
+
+#Simple exponential smoothing
+se_model<-ses(dat_ts1,h=12)
+summary(se_model)
+df_fc = as.matrix(se_model)
+test$simplexp = df_fc$`Point Forecast`
+mape(test$SFDetachBenchmark, test$simplexp)
+
+#Holts trend model 
+holt_model<-holt(dat_ts1,h=12)
+summary(holt_model)
+df_holt = as.matrix(holt_model)
+test$holt = df_holt$`Point Forecast`
+mape(test$SFDetachBenchmark, test$holt) 
+
+# Arima
+arima_model<-auto.arima(dat_ts1)
+summary(arima_model)
+fore_arima = forecast::forecast(arima_model, h=12)
+df_arima = as.matrix(fore_arima)
+test$arima = df_arima$`Point Forecast`
+mape(test$SFDetachBenchmark, test$arima) 
